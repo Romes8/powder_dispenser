@@ -15,9 +15,8 @@ LCDWIKI_KBV my_lcd(ILI9341,A3,A2,A1,A0,A4); //model,cs,cd,wr,rd,reset
 #define BLACK        0x0000  
 #define RED          0xF800  
 #define GREEN        0x07E0 
-#define DARKGREY         0x07FF   
-#define WHITE        0xFFFF  
-#define DARKDARKGREY     0x03EF 
+#define DARKGREY     0x737373  
+#define WHITE        0xFFFF   
 #define PURPLE       0x780F    
 #define PINK         0xF81F  
 #define ORANGE       0xFF6C
@@ -56,7 +55,7 @@ TouchScreen ts = TouchScreen(XP, YP, XM, YM, 300);
 const int motorPin = 44; // white motor 
 const int motorPin2 = 46; //brown motor
 
-int Speed; //Variable to store Speed
+int Speed = 0; //Variable to store Speed
 int flag;
 
 //pins for Load cell
@@ -84,16 +83,16 @@ typedef struct _button_info
 //number layout 
 button_info phone_button[12] = 
 {
-  "1",3,BLACK,DARKGREY,EDG_X+BUTTON_R-1,my_lcd.Get_Display_Height()-EDG_Y-4*BUTTON_SPACING_Y-9*BUTTON_R-1,
-  "2",3,BLACK,DARKGREY,EDG_X+3*BUTTON_R+BUTTON_SPACING_X-1,my_lcd.Get_Display_Height()-EDG_Y-4*BUTTON_SPACING_Y-9*BUTTON_R-1,
-  "3",3,BLACK,DARKGREY,EDG_X+5*BUTTON_R+2*BUTTON_SPACING_X-1,my_lcd.Get_Display_Height()-EDG_Y-4*BUTTON_SPACING_Y-9*BUTTON_R-1,
-  "4",3,BLACK,DARKGREY,EDG_X+BUTTON_R-1,my_lcd.Get_Display_Height()-EDG_Y-3*BUTTON_SPACING_Y-7*BUTTON_R-1, 
-  "5",3,BLACK,DARKGREY,EDG_X+3*BUTTON_R+BUTTON_SPACING_X-1,my_lcd.Get_Display_Height()-EDG_Y-3*BUTTON_SPACING_Y-7*BUTTON_R-1,
-  "6",3,BLACK,DARKGREY,EDG_X+5*BUTTON_R+2*BUTTON_SPACING_X-1,my_lcd.Get_Display_Height()-EDG_Y-3*BUTTON_SPACING_Y-7*BUTTON_R-1,
-  "7",3,BLACK,DARKGREY,EDG_X+BUTTON_R-1,my_lcd.Get_Display_Height()-EDG_Y-2*BUTTON_SPACING_Y-5*BUTTON_R-1,
-  "8",3,BLACK,DARKGREY,EDG_X+3*BUTTON_R+BUTTON_SPACING_X-1,my_lcd.Get_Display_Height()-EDG_Y-2*BUTTON_SPACING_Y-5*BUTTON_R-1,
-  "9",3,BLACK,DARKGREY,EDG_X+5*BUTTON_R+2*BUTTON_SPACING_X-1,my_lcd.Get_Display_Height()-EDG_Y-2*BUTTON_SPACING_Y-5*BUTTON_R-1,
-  "0",3,BLACK,DARKGREY,EDG_X+3*BUTTON_R+BUTTON_SPACING_X-1,my_lcd.Get_Display_Height()-EDG_Y-BUTTON_SPACING_Y-3*BUTTON_R-1,
+  "1",3,BLACK,ORANGE,EDG_X+BUTTON_R-1,my_lcd.Get_Display_Height()-EDG_Y-4*BUTTON_SPACING_Y-9*BUTTON_R-1,
+  "2",3,BLACK,ORANGE,EDG_X+3*BUTTON_R+BUTTON_SPACING_X-1,my_lcd.Get_Display_Height()-EDG_Y-4*BUTTON_SPACING_Y-9*BUTTON_R-1,
+  "3",3,BLACK,ORANGE,EDG_X+5*BUTTON_R+2*BUTTON_SPACING_X-1,my_lcd.Get_Display_Height()-EDG_Y-4*BUTTON_SPACING_Y-9*BUTTON_R-1,
+  "4",3,BLACK,ORANGE,EDG_X+BUTTON_R-1,my_lcd.Get_Display_Height()-EDG_Y-3*BUTTON_SPACING_Y-7*BUTTON_R-1, 
+  "5",3,BLACK,ORANGE,EDG_X+3*BUTTON_R+BUTTON_SPACING_X-1,my_lcd.Get_Display_Height()-EDG_Y-3*BUTTON_SPACING_Y-7*BUTTON_R-1,
+  "6",3,BLACK,ORANGE,EDG_X+5*BUTTON_R+2*BUTTON_SPACING_X-1,my_lcd.Get_Display_Height()-EDG_Y-3*BUTTON_SPACING_Y-7*BUTTON_R-1,
+  "7",3,BLACK,ORANGE,EDG_X+BUTTON_R-1,my_lcd.Get_Display_Height()-EDG_Y-2*BUTTON_SPACING_Y-5*BUTTON_R-1,
+  "8",3,BLACK,ORANGE,EDG_X+3*BUTTON_R+BUTTON_SPACING_X-1,my_lcd.Get_Display_Height()-EDG_Y-2*BUTTON_SPACING_Y-5*BUTTON_R-1,
+  "9",3,BLACK,ORANGE,EDG_X+5*BUTTON_R+2*BUTTON_SPACING_X-1,my_lcd.Get_Display_Height()-EDG_Y-2*BUTTON_SPACING_Y-5*BUTTON_R-1,
+  "0",3,BLACK,ORANGE,EDG_X+3*BUTTON_R+BUTTON_SPACING_X-1,my_lcd.Get_Display_Height()-EDG_Y-BUTTON_SPACING_Y-3*BUTTON_R-1,
   "RUN",2,BLACK,GREEN,EDG_X+BUTTON_R-1,my_lcd.Get_Display_Height()-EDG_Y-BUTTON_R-1,
   "DEL",2,BLACK,RED,EDG_X+5*BUTTON_R+2*BUTTON_SPACING_X-1,my_lcd.Get_Display_Height()-EDG_Y-BUTTON_R-1,
 };
@@ -169,7 +168,7 @@ void setup()
   Serial.begin(9600); delay(10);
 
   pinMode(motorPin, OUTPUT);
-  pinMode(motorPin2, OUTPUT); //may not be needed
+  pinMode(motorPin2, OUTPUT);
 
   my_lcd.Init_LCD();
   my_lcd.Fill_Screen(WHITE); 
@@ -234,7 +233,7 @@ void loop()
         Serial.print("Load value: ");
         Serial.println(init_load);
         newDataReady = 0;
-        t = millis();
+        t = millis() + 1500;
       }
     }
   }
@@ -316,6 +315,8 @@ void loop()
   //display number menu
   show_menu();
   String grams = ""; //string for numbers
+  float input_grams = 0.0;
+  float percentage = 0.0;
 
   while(i != 10)
   {
@@ -361,42 +362,50 @@ void loop()
           else if (*phone_button[i].button_name == 51)
           {
             Serial.println("3");
-            grams += 2;
+            grams.concat(3);
+            Serial.println(grams);
           }
           else if (*phone_button[i].button_name == 52)
           {
             Serial.println("4");
-          grams += 2;
+            grams.concat(4);
+            Serial.println(grams);
           }
-          else if (*phone_button[i].button_name == 53)
+          else if (*phone_button[i].button_name == 53) 
           {
             Serial.println("5");
-            grams += 2;
+            grams.concat(5);
+            Serial.println(grams);
           }
           else if (*phone_button[i].button_name == 54)
           {
             Serial.println("6");
-            grams += 2;
+            grams.concat(6);
+            Serial.println(grams);
           }
           else if (*phone_button[i].button_name == 55)
           {
             Serial.println("7");
-          grams += 2;
+            grams.concat(7);
+            Serial.println(grams);
           }
           else if (*phone_button[i].button_name == 56)
           {
             Serial.println("8");
-            grams += 2;
+            grams.concat(8);
+            Serial.println(grams);
           }
           else if (*phone_button[i].button_name == 57)
           {
             Serial.println("9");
-            grams += 2;
+            grams.concat(9);
+            Serial.println(grams);
           }
           else if (*phone_button[i].button_name == 48)
           {
             Serial.println("0");
-            grams += 2;
+            grams.concat(0);
+            Serial.println(grams);
           }
           
           delay(100);
@@ -430,9 +439,11 @@ void loop()
               Serial.println("Run pressed");
 
               //calculations for final grams
-              int together = cup_weight + grams.toInt();
+              input_grams = grams.toInt();
+              float together = cup_weight + input_grams;
               int add_grams = 0;
 
+              Serial.print("Together:");
               Serial.println(together);
               delay(1000);
               LoadCell.begin();
@@ -449,7 +460,7 @@ void loop()
               LoadCell.start(stabilizingtime, _tare);
               
               //run till desired grams are reached
-              while(add_grams<together)
+              while(add_grams <= input_grams)
               {
                 if (LoadCell.update()) newDataReady = true;
                 if (newDataReady) 
@@ -467,15 +478,77 @@ void loop()
                 //motor start
                 if (motor == 1)
                 {
-                  analogWrite(motorPin, 255);  
+                  if (input_grams <= 6)
+                  {
+                    analogWrite(motorPin, 170);
+                    Serial.println("Only half full all time.");
+                  }
+                  else if(input_grams >= 7)
+                  {
+                     percentage = input_grams * 0.8; //80% of input weight
+                     while (add_grams <= percentage)
+                     {
+                      if (LoadCell.update()) newDataReady = true;
+                      if (newDataReady) 
+                      {
+                        if (millis() > t + serialPrintInterval)
+                        {
+                          add_grams = LoadCell.getData();
+                          Serial.print("Load value: ");
+                          Serial.println(add_grams);
+                          newDataReady = 0;
+                          t = millis();
+                        }
+                      }
+                      analogWrite(motorPin, 255);
+                      Serial.print("Add grams: ");
+                      Serial.println(add_grams);
+                      Serial.print("Percentage: ");
+                      Serial.println(percentage);
+                      Serial.println("80 percent full.");
+                     }
+                     
+                     
+                     analogWrite(motorPin, 100); //slow down to last 20 percent
+                     Serial.println("20 percent slow.");
+                  }
                 }
                 else if (motor == 2)
                 {
-                  analogWrite(motorPin2, 255);  
-                }
-                else 
-                {
-                  Serial.println("Problem with motor set up.");
+                   if (input_grams <= 6)
+                  {
+                    analogWrite(motorPin2, 170);
+                    Serial.println("Only half full all time. mt2");
+                  }
+                  else if(input_grams >= 7)
+                  {
+                     percentage = input_grams * 0.8; //80% of input weight
+                     while (add_grams <= percentage)
+                     {
+                      if (LoadCell.update()) newDataReady = true;
+                      if (newDataReady) 
+                      {
+                        if (millis() > t + serialPrintInterval)
+                        {
+                          add_grams = LoadCell.getData();
+                          Serial.print("Load value: ");
+                          Serial.println(add_grams);
+                          newDataReady = 0;
+                          t = millis();
+                        }
+                      }
+                      analogWrite(motorPin2, 255);
+                      Serial.print("Add grams: ");
+                      Serial.println(add_grams);
+                      Serial.print("Percentage: ");
+                      Serial.println(percentage);
+                      Serial.println("80 percent full. mt2");
+                     }
+                     
+                     
+                     analogWrite(motorPin2, 100); //slow down to last 20 percent
+                     Serial.println("20 percent slow. mt2");
+                  }
                 }
               }
 
@@ -519,15 +592,7 @@ void loop()
                   }
                 }
                 
-              //delete numbers from line
               size_of_string = grams.length();
-              /*for (int r = 0;r <= size_of_string; r++){
-                //my_lcd.Set_Draw_color(WHITE);
-                text_x -= (text_x_add-1);  
-                my_lcd.Fill_Rectangle(text_x, text_y, text_x+text_x_add-1, text_y+text_y_add-2);
-                n--; 
-                
-              } */
 
               Serial.println("Numbers deleted.");
 
